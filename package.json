@@ -1,0 +1,17 @@
+{
+  "name": "football-arena-online-1v1",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Realtime 1v1 online football game using Express and Socket.IO",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}

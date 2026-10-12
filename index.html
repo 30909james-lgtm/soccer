@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>FOOTBALL ARENA ONLINE｜1v1</title>
+<style>
+:root{--blue:#69c8ff;--red:#ff6677;--gold:#ffd166}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#06110d;color:#f5fafb;font-family:system-ui,"Noto Sans TC",sans-serif;touch-action:none}canvas{display:block}
+#hud{position:fixed;z-index:2;top:12px;left:0;right:0;display:flex;align-items:center;flex-direction:column;gap:7px;pointer-events:none}
+#brand{font-size:10px;letter-spacing:.25em;font-weight:900;text-shadow:0 2px 8px #000}
+#score{display:flex;align-items:center;gap:15px;padding:9px 16px;border:1px solid #ffffff2b;border-radius:14px;background:#06141ddd;backdrop-filter:blur(12px);font-weight:900}
+.team{font-size:12px;white-space:nowrap}.num{font-size:32px;font-variant-numeric:tabular-nums}.clock{font-size:12px;color:var(--gold)}
+#status{max-width:94vw;border-radius:99px;background:#07151ddd;border:1px solid #ffffff20;padding:6px 12px;font-size:11px;text-align:center}
+#roomBadge{position:fixed;z-index:3;left:12px;top:12px;background:#06141ddd;border:1px solid #ffffff22;border-radius:10px;padding:9px 11px;font-size:11px}
+#help{position:fixed;z-index:2;left:12px;bottom:12px;padding:10px 12px;border-radius:10px;background:#06141ddd;border:1px solid #ffffff22;font-size:11px;line-height:1.8;color:#d4e2e5;pointer-events:none}
+#actions{position:fixed;z-index:3;right:16px;bottom:20px;display:flex;gap:8px}
+button,input{font:inherit}button{border:1px solid #ffffff25;border-radius:10px;padding:11px 14px;background:#17303a;color:#fff;font-weight:800;cursor:pointer}button.primary{background:var(--blue);color:#06131a;border-color:var(--blue)}button:disabled{opacity:.45;cursor:not-allowed}
+#overlay{position:fixed;z-index:10;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at 50% 0%,#173c30f5,#02080cf7 70%);overflow:auto}
+#card{width:min(520px,100%);padding:clamp(20px,4vw,36px);border:1px solid #ffffff22;border-radius:22px;background:linear-gradient(145deg,#11271fee,#08131af5);box-shadow:0 28px 90px #0009}
+#logo{font-size:11px;letter-spacing:.25em;color:var(--blue);font-weight:1000}h1{font-size:clamp(32px,7vw,54px);letter-spacing:-.05em;line-height:1.03;margin:12px 0}
+p{font-size:13px;color:#c0d0d4;line-height:1.75}.field{display:flex;flex-direction:column;gap:6px;text-align:left;margin:12px 0}.field label{font-size:11px;color:#aabdc3;font-weight:800}.field input{width:100%;padding:12px;border-radius:9px;border:1px solid #ffffff26;background:#06131a;color:#fff;outline:none}.field input:focus{border-color:var(--blue)}
+.actions2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}.actions2 button{min-height:44px}.note{font-size:11px;color:#92a7ad;margin-top:12px}.error{color:#ff8792;min-height:18px;font-size:12px;margin-top:8px}
+#touch{display:none;position:fixed;z-index:4;inset:0;pointer-events:none}
+#joy{position:absolute;left:18px;bottom:22px;width:120px;height:120px;border-radius:50%;border:1px solid #ffffff55;background:#06151c88;pointer-events:auto;touch-action:none}
+#nub{position:absolute;left:36px;top:36px;width:46px;height:46px;border-radius:50%;background:#d8edf4c9;border:2px solid #fff9}
+#touchBtns{position:absolute;right:14px;bottom:28px;display:grid;grid-template-columns:repeat(2,62px);gap:8px;pointer-events:auto}
+#touchBtns button{height:58px;padding:0;border-radius:50%;font-size:11px;background:#071922e8}
+#touchBtns #shoot{background:#ffd166;color:#172026}
+#end{display:none;position:fixed;z-index:9;inset:0;align-items:center;justify-content:center;text-align:center;background:#02080cdd;padding:20px}
+#endCard{width:min(400px,100%);background:#0a1a21;border:1px solid #ffffff22;border-radius:18px;padding:28px}#final{font-size:50px;font-weight:1000;margin:12px}
+@media(max-width:700px){#help{display:none}#touch{display:block}#actions{display:none}#roomBadge{top:auto;bottom:155px;font-size:10px}#score{gap:9px;padding:8px 11px}.team{font-size:10px}.num{font-size:26px}#status{font-size:10px}}
+</style>
+</head>
+<body>
+<div id="hud"><div id="brand">FOOTBALL ARENA · ONLINE 1V1</div><div id="score"><span class="team">🔵 BLUE</span><span id="blue" class="num">0</span><span id="clock" class="clock">03:00</span><span id="red" class="num">0</span><span class="team">RED 🔴</span></div><div id="status">建立房間或輸入代碼加入朋友</div></div>
+<div id="roomBadge">房間：<b id="roomCode">—</b> · 隊伍：<b id="myTeam">未加入</b></div>
+<div id="help"><b>操作</b><br>WASD／方向鍵：移動<br>Shift：衝刺　Space：射門<br>E：傳球　P：暫停輸入</div>
+<div id="actions"><button id="passBtn">傳球 E</button><button id="shootBtn" class="primary">射門 Space</button></div>
+<div id="touch"><div id="joy"><div id="nub"></div></div><div id="touchBtns"><button id="tpass">傳球</button><button id="shoot">射門</button><button id="sprint">衝刺</button></div></div>
+<div id="overlay"><div id="card"><div id="logo">FOOTBALL ARENA ONLINE</div><h1>和朋友<br><span style="color:var(--blue)">一對一</span>踢球。</h1><p>建立私人房間，把 5 位房間代碼傳給朋友。雙方各控制一名球員，球的位置、比分和比賽時間由伺服器同步。</p>
+<div class="field"><label for="name">你的暱稱</label><input id="name" maxlength="16" placeholder="例如：James" value=""></div>
+<div class="actions2"><button id="create" class="primary">建立房間</button><button id="copy" disabled>複製房間代碼</button></div>
+<div class="field"><label for="joinCode">朋友的房間代碼</label><input id="joinCode" maxlength="5" placeholder="輸入 5 位代碼" autocapitalize="characters"></div>
+<button id="join" style="width:100%">加入朋友的房間</button><div class="error" id="error"></div>
+<div class="note">需要兩位玩家加入才會開賽。請把此網站部署到支援 WebSocket 的主機，不能只把 HTML 檔案傳給朋友。</div></div></div>
+<div id="end"><div id="endCard"><div id="logo">FULL TIME</div><h2>終場哨響</h2><div id="final">0 — 0</div><p id="endText"></p><button id="again" class="primary">房主重新開賽</button><button id="back">返回房間選單</button></div></div>
+<script src="/socket.io/socket.io.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(()=> {
+'use strict';
+const $=id=>document.getElementById(id);
+const socket=io({transports:['websocket','polling']});
+let myId=null,myTeam=null,room=null,latest=null,pausedInput=false,joyX=0,joyZ=0,sprinting=false,shotHeld=false,shotCharge=0;
+const keys=new Set();
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function msg(t){$('status').textContent=t;}
+function fail(t){$('error').textContent=t;}
+function fmt(t){t=Math.max(0,Math.ceil(t||0));return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');}
+function emitInput(){
+ let x=0,z=0;if(keys.has('KeyA')||keys.has('ArrowLeft'))x--;if(keys.has('KeyD')||keys.has('ArrowRight'))x++;if(keys.has('KeyW')||keys.has('ArrowUp'))z--;if(keys.has('KeyS')||keys.has('ArrowDown'))z++;x+=joyX;z+=joyZ;const n=Math.hypot(x,z)||1;if(n>1){x/=n;z/=n;}
+ socket.emit('input',{x,z,sprint:sprinting||keys.has('ShiftLeft')||keys.has('ShiftRight')});
+}
+function action(a){if(room&&latest&&latest.started&&!latest.ended&&!pausedInput)socket.emit('action',a);}
+$('create').onclick=()=>{fail('');socket.emit('createRoom',{name:$('name').value.trim()||'藍隊玩家'},r=>{if(!r||!r.ok)fail(r?.error||'建立房間失敗');});};
+$('join').onclick=()=>{fail('');socket.emit('joinRoom',{code:$('joinCode').value,name:$('name').value.trim()||'紅隊玩家'},r=>{if(!r||!r.ok)fail(r?.error||'加入房間失敗');});};
+$('joinCode').addEventListener('input',()=>{$('joinCode').value=$('joinCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5);});
+$('copy').onclick=async()=>{if(!room)return;try{await navigator.clipboard.writeText(room);msg('房間代碼已複製：'+room);}catch(e){$('joinCode').value=room;msg('請手動複製房間代碼：'+room);}};
+$('passBtn').onclick=()=>action('pass');$('shootBtn').onclick=()=>action('shoot');$('tpass').onclick=()=>action('pass');
+$('shoot').addEventListener('pointerdown',e=>{e.preventDefault();shotHeld=true;shotCharge=0;});$('shoot').addEventListener('pointerup',e=>{e.preventDefault();shotHeld=false;action('shoot');});$('shoot').addEventListener('pointercancel',()=>shotHeld=false);
+$('sprint').addEventListener('pointerdown',()=>sprinting=true);['pointerup','pointerleave','pointercancel'].forEach(ev=>$('sprint').addEventListener(ev,()=>sprinting=false));
+$('joy').addEventListener('pointerdown',e=>{e.preventDefault();$('joy').setPointerCapture(e.pointerId);joy(e);});
+$('joy').addEventListener('pointermove',e=>{if(e.buttons||e.pressure)joy(e);});
+function joy(e){const r=$('joy').getBoundingClientRect();let x=(e.clientX-r.left-r.width/2)/42,z=(e.clientY-r.top-r.height/2)/42,n=Math.hypot(x,z);if(n>1){x/=n;z/=n;}joyX=x;joyZ=z;$('nub').style.transform=`translate(${x*31}px,${z*31}px)`;emitInput();}
+['pointerup','pointercancel','lostpointercapture'].forEach(ev=>$('joy').addEventListener(ev,()=>{joyX=joyZ=0;$('nub').style.transform='translate(0,0)';emitInput();}));
+window.addEventListener('keydown',e=>{if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.repeat)return;if(e.code==='KeyE')action('pass');if(e.code==='Space'){shotHeld=true;shotCharge=0;}if(e.code==='KeyP'){pausedInput=!pausedInput;msg(pausedInput?'操作已暫停（只暫停自己）':'操作已恢復');}emitInput();});
+window.addEventListener('keyup',e=>{keys.delete(e.code);if(e.code==='Space'&&shotHeld){shotHeld=false;action('shoot');}emitInput();});
+window.addEventListener('blur',()=>{keys.clear();joyX=joyZ=0;sprinting=false;emitInput();});
+$('again').onclick=()=>socket.emit('restart');$('back').onclick=()=>{location.reload();};
+socket.on('connect',()=>{myId=socket.id;});
+socket.on('joined',d=>{room=d.code;myTeam=d.team;$('roomCode').textContent=room;$('myTeam').textContent=myTeam==='blue'?'藍隊':'紅隊';$('copy').disabled=false;$('overlay').style.display='none';msg(d.team==='blue'?'你是藍隊，進攻右側球門。':'你是紅隊，進攻左側球門。');});
+socket.on('notice',msg);socket.on('roomClosed',t=>{alert(t);location.reload();});
+socket.on('state',s=>{latest=s;$('blue').textContent=s.blue;$('red').textContent=s.red;$('clock').textContent=fmt(s.timeLeft);if(s.players.length<2){msg('等待朋友加入，房間代碼：'+s.code);}else if(s.kickoff>0){msg('開球準備中…');}else if(s.ended){msg('比賽結束');$('end').style.display='flex';$('final').textContent=s.blue+' — '+s.red;$('endText').textContent=s.blue>s.red?'藍隊獲勝！':s.red>s.blue?'紅隊獲勝！':'平手！';$('again').style.display=s.players.some(p=>p.id===myId&&p.team==='blue')?'inline-block':'none';}else if(!pausedInput){msg(myTeam==='blue'?'藍隊：進攻右側球門':'紅隊：進攻左側球門');}});
+socket.on('disconnect',()=>msg('連線中斷，正在嘗試重新連線…'));
+
+if(!window.THREE){fail('3D 引擎載入失敗，請確認網路。');return;}
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x07151b);scene.fog=new THREE.Fog(0x07151b,90,180);
+const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.1,300);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,innerWidth<700?1.1:1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputEncoding=THREE.sRGBEncoding;document.body.prepend(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xd8edff,0x203827,1.3));const sun=new THREE.DirectionalLight(0xfff0d8,1.4);sun.position.set(-25,55,35);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
+const mat=(c,r=.8,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
+const turf=mat(0x247c3d),line=mat(0xe8f5ed),blueMat=mat(0x35a9f0,.5),redMat=mat(0xe74755,.5),skin=mat(0xe4b58e),dark=mat(0x15232a),white=mat(0xf7fafc);
+const field=new THREE.Mesh(new THREE.PlaneGeometry(90,52),turf);field.rotation.x=-Math.PI/2;field.receiveShadow=true;scene.add(field);
+for(let i=0;i<10;i++){const stripe=new THREE.Mesh(new THREE.PlaneGeometry(9,52),mat(i%2?0x277e40:0x2c8947));stripe.rotation.x=-Math.PI/2;stripe.position.set(-40.5+i*9,.012,0);scene.add(stripe);}
+function lineSeg(x1,z1,x2,z2){const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz);const m=new THREE.Mesh(new THREE.BoxGeometry(len,.025,.12),line);m.position.set((x1+x2)/2,.035,(z1+z2)/2);m.rotation.y=-Math.atan2(dz,dx);scene.add(m);}
+lineSeg(-44,-25,44,-25);lineSeg(-44,25,44,25);lineSeg(-44,-25,-44,25);lineSeg(44,-25,44,25);lineSeg(0,-25,0,25);
+const circle=new THREE.Mesh(new THREE.TorusGeometry(7,.07,6,80),line);circle.rotation.x=Math.PI/2;circle.position.y=.05;scene.add(circle);
+for(const x of [-44,44]){for(const z of [-8,8])lineSeg(x,z,x+(x<0?7:-7),z);lineSeg(x+(x<0?7:-7),-8,x+(x<0?7:-7),8);}
+function makeGoal(x,dir){const g=new THREE.Group();g.position.x=x;const post=mat(0xf5f5f5,.45);for(const z of [-5,5]){const p=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,2.8,10),post);p.position.set(0,1.4,z);g.add(p);}const bar=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,10,10),post);bar.rotation.x=Math.PI/2;bar.position.y=2.8;g.add(bar);scene.add(g);}makeGoal(-44,-1);makeGoal(44,1);
+const stadium=mat(0x162a30);for(let i=0;i<5;i++){const a=new THREE.Mesh(new THREE.BoxGeometry(100,1.3,3),stadium);a.position.set(0,-.2+i*1.3,-29-i*1.8);scene.add(a);const b=a.clone();b.position.z=29+i*1.8;scene.add(b);}
+const ball=new THREE.Group();const sphere=new THREE.Mesh(new THREE.SphereGeometry(.62,20,16),white);sphere.castShadow=true;ball.add(sphere);const black=mat(0x111820);for(let i=0;i<5;i++){const patch=new THREE.Mesh(new THREE.CircleGeometry(.2,5),black);patch.position.set(Math.cos(i*Math.PI*2/5)*.58,.05,Math.sin(i*Math.PI*2/5)*.58);patch.rotation.x=-.7;ball.add(patch);}scene.add(ball);
+function playerModel(color){const root=new THREE.Group();const body=new THREE.Mesh(new THREE.CylinderGeometry(.48,.56,1.15,12),color);body.position.y=1.4;body.castShadow=true;root.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.32,12,10),skin);head.position.y=2.18;head.castShadow=true;root.add(head);const shorts=new THREE.Mesh(new THREE.CylinderGeometry(.44,.5,.4,10),dark);shorts.position.y=.65;root.add(shorts);for(const s of [-1,1]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.12,.14,.6,8),dark);leg.position.set(s*.2,.3,0);root.add(leg);}return root;}
+const bluePlayer=playerModel(blueMat),redPlayer=playerModel(redMat);scene.add(bluePlayer,redPlayer);
+function updateScene(s,dt){
+ if(!s)return;
+ for(const p of s.players){const o=p.team==='blue'?bluePlayer:redPlayer;o.position.set(p.x,Math.abs(Math.sin(performance.now()*.009))*Math.min(.07,Math.hypot(p.vx,p.vz)*.006),p.z);o.rotation.y=Math.atan2(p.dirX,p.dirZ);}
+ ball.position.set(s.ball.x,.62,s.ball.z);ball.rotation.z+=s.ball.vx*dt*.12;ball.rotation.x+=s.ball.vz*dt*.12;
+ const me=s.players.find(p=>p.id===myId);if(me){const targetX=me.x+(myTeam==='blue'?-4:4),targetZ=me.z+20;camera.position.lerp(new THREE.Vector3(targetX,28,targetZ),Math.min(1,dt*2.5));camera.lookAt(me.x,0,me.z);}
+}
+let last=performance.now();
+function loop(){requestAnimationFrame(loop);const now=performance.now(),dt=Math.min(.05,(now-last)/1000);last=now;if(latest)updateScene(latest,dt);renderer.render(scene,camera);}loop();
+window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+})();
+</script>
+</body></html>
